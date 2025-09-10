@@ -2,6 +2,11 @@ fastapi
 uvicorn[standard]
 pandas
 scikit-learn
-imblearn
 joblib
-streamlit
+numpy
+imblearn
+lightgbm
+matplotlib
+seaborn
+nltk
+pandas

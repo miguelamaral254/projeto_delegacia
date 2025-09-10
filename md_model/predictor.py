@@ -1,40 +1,21 @@
-# md_model/predictor.py
-
+import joblib
 import pandas as pd
-from joblib import load
-from md_core.config import MODEL_PATH, PREPROCESSOR_PATH
 
 
-# from md_api.schemas import OcorrenciaInput <-- REMOVA ESTA LINHA
+class CrimePredictor:
+    def __init__(self, model_pipeline_path: str):
+        self.pipeline = joblib.load(model_pipeline_path)
 
-class ModelPredictor:
-    def __init__(self):
-        try:
-            print("Carregando artefatos do modelo...")
-            self.model = load(MODEL_PATH)
-            self.preprocessor = load(PREPROCESSOR_PATH)
-            print("Artefatos carregados com sucesso.")
-        except FileNotFoundError:
-            print("Erro: Arquivos de modelo não encontrados. Execute 'python train.py' primeiro.")
-            self.model = None
-            self.preprocessor = None
+    def predict(self, input_data: dict):
+        input_df = pd.DataFrame([input_data])
 
-    # ALTERADO: Agora aceita um dicionário (dict) em vez de um objeto Pydantic
-    def predict(self, input_data: dict) -> str:
-        if not self.model or not self.preprocessor:
-            return "Modelo não disponível."
+        prediction = self.pipeline.predict(input_df)
+        prediction_proba = self.pipeline.predict_proba(input_df)
 
-        # ALTERADO: A conversão agora é direto de um dict para DataFrame
-        df = pd.DataFrame([input_data])
+        classes = self.pipeline.named_steps['classifier'].classes_
+        probabilities = dict(zip(classes, prediction_proba[0]))
 
-        # Aplica a mesma transformação dos dados de treino
-        transformed_data = self.preprocessor.transform(df)
-
-        # Faz a predição
-        prediction = self.model.predict(transformed_data)
-
-        return prediction[0]
-
-
-# A instância global continua a mesma
-predictor = ModelPredictor()
+        return {
+            "tipo_crime_predito": prediction[0],
+            "probabilidades": probabilities
+        }
