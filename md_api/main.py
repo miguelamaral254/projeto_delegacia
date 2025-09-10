@@ -44,6 +44,11 @@ class OcorrenciaInput(BaseModel):
     dia_semana: int
     hora: int
 
+class HotspotInput(BaseModel):
+    bairro: str
+    hora: int
+    n_hotspots: int = 3
+
 @app.get("/")
 def read_root():
     return {"message": "Bem-vindo à API Delegacia 5.0. Acesse /docs para a documentação."}
@@ -51,6 +56,14 @@ def read_root():
 @app.post("/predict")
 def predict_crime(ocorrencia: OcorrenciaInput):
     return predictor.predict(ocorrencia.dict())
+
+@app.post("/predict/hotspots")
+def predict_crime_hotspots(data: HotspotInput):
+    return analyzer.predict_hotspots(
+        bairro=data.bairro, 
+        hora=data.hora, 
+        n_clusters=data.n_hotspots
+    )
 
 @app.get("/occurrences")
 def get_occurrences(
@@ -92,6 +105,7 @@ def get_unique_crime_types():
 @app.get("/statistics/unique-bairros")
 def get_unique_bairros():
     return analyzer.get_unique_bairros()
+
 @app.get("/statistics/unique-years")
 def get_unique_years():
     return analyzer.get_unique_years()

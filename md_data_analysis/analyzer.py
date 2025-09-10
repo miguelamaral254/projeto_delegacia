@@ -1,5 +1,5 @@
 import pandas as pd
-
+from sklearn.cluster import KMeans
 
 class DataAnalyzer:
     def __init__(self, file_path: str):
@@ -19,29 +19,20 @@ class DataAnalyzer:
     def get_heatmap_data(self, bairro: str = None, hora: int = None, tipo_crime: str = None, dia_semana: int = None,
                          ano: int = None, mes: int = None):
         df_filtrado = self.df.copy()
-
         if bairro:
             df_filtrado = df_filtrado[df_filtrado['bairro'].str.contains(bairro, case=False, na=False)]
-
         if hora is not None:
             df_filtrado = df_filtrado[df_filtrado['hora'] == hora]
-
         if tipo_crime:
             df_filtrado = df_filtrado[df_filtrado['tipo_crime'] == tipo_crime]
-
         if dia_semana is not None:
             df_filtrado = df_filtrado[df_filtrado['dia_semana'] == dia_semana]
-
         if ano is not None:
             df_filtrado = df_filtrado[df_filtrado['ano'] == ano]
-
         if mes is not None:
             df_filtrado = df_filtrado[df_filtrado['mes'] == mes]
-
         heatmap_data = df_filtrado.groupby(['bairro', 'hora']).size().reset_index(name='ocorrencias')
-
         heatmap_data = heatmap_data.sort_values('ocorrencias', ascending=False)
-
         return heatmap_data.to_dict(orient='records')
 
     def get_seasonality_data(self, by: str = 'month'):
@@ -69,7 +60,7 @@ class DataAnalyzer:
         df_filtrado = df_filtrado[
             (df_filtrado['latitude'] > lat_min) & (df_filtrado['latitude'] < lat_max) &
             (df_filtrado['longitude'] > lon_min) & (df_filtrado['longitude'] < lon_max)
-            ]
+        ]
         if tipo_crime:
             df_filtrado = df_filtrado[df_filtrado['tipo_crime'] == tipo_crime]
         if bairro:
@@ -80,3 +71,25 @@ class DataAnalyzer:
     def get_unique_years(self):
         years = sorted(self.df['ano'].unique().tolist())
         return years
+
+    def predict_hotspots(self, bairro: str, hora: int, n_clusters: int = 3):
+        df_filtrado = self.df[
+            (self.df['bairro'] == bairro) & 
+            (self.df['hora'] == hora)
+        ]
+        if len(df_filtrado) < n_clusters:
+            return {
+                "message": "Dados insuficientes para prever hotspots com os filtros fornecidos.",
+                "hotspots": []
+            }
+        coordenadas = df_filtrado[['latitude', 'longitude']]
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+        kmeans.fit(coordenadas)
+        hotspots = kmeans.cluster_centers_
+        resultado = [
+            {"lat": lat, "lon": lon} for lat, lon in hotspots
+        ]
+        return {
+            "message": f"{len(resultado)} hotspots previstos encontrados.",
+            "hotspots": resultado
+        }
