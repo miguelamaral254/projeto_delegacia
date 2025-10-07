@@ -1,7 +1,3 @@
-Certamente! O código fornecido implementa um conjunto de ferramentas analíticas para a área de **Segurança Pública e Análise Criminal**. Apresento a seguir o *storytelling* detalhado de cada funcionalidade, explicando sua mecânica (modelo e tipo de ML), informações úteis e considerações éticas e de *compliance* (LGPD/Ética, Reprodutibilidade e Documentação).
-
----
-
 ## 1. Análise de Tópicos do Modus Operandi (Função: `analyze_text_topics`)
 
 ### 📜 Storytelling: Desvendando a Mente do Criminoso
