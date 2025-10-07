@@ -2,17 +2,23 @@ import sys
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from md_api.routers import statistics, predictions, occurrences, analysis
+from contextlib import asynccontextmanager
 
-FILE = Path(__file__).resolve()
-ROOT = FILE.parent.parent  
-if str(ROOT) not in sys.path:
-    sys.path.append(str(ROOT))
+from md_api.routers import statistics, predictions, occurrences, analysis, dataset
+from md_data_analysis.data_loader import load_initial_dataframe
+
+DATA_PATH = Path(__file__).resolve().parent / "data" / "dataset_ocorrencias_delegacia_5.csv"
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    load_initial_dataframe(DATA_PATH)
+    yield
 
 app = FastAPI(
     title="Delegacia 5.0 - API Preditiva de Crimes",
     description="API para análise e predição de ocorrências criminais.",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 origins = ["http://localhost:5173", "http://localhost:3000"]
@@ -28,7 +34,8 @@ app.include_router(statistics.router)
 app.include_router(predictions.router)
 app.include_router(occurrences.router)
 app.include_router(analysis.router)
+app.include_router(dataset.router)
+
 @app.get("/")
 def read_root():
     return {"message": "Bem-vindo à API Delegacia 5.0. Acesse /docs para a documentação interativa."}
-

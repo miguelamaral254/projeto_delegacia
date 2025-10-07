@@ -1,5 +1,6 @@
 fastapi
 uvicorn[standard]
+python-multipart
 pandas
 scikit-learn
 joblib
@@ -9,6 +10,3 @@ lightgbm
 matplotlib
 seaborn
 nltk
-pandas
-
-uvicorn

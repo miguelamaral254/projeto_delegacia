@@ -8,16 +8,15 @@ ROOT = FILE.parent.parent.parent
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
-from md_data_analysis.data_loader import load_dataframe
+# MUDANÇA 1: Importa a função correta
+from md_data_analysis.data_loader import get_dataframe
 from md_data_analysis.analysis_functions.get_all_occurrences import analyze_all_occurrences
-
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DATA_PATH = BASE_DIR / "data" / "dataset_ocorrencias_delegacia_5.csv"
 
 router = APIRouter(tags=["Occurrences"])
 
+# MUDANÇA 2: Usa a nova função para obter o dataframe da memória
 def get_df():
-    return load_dataframe(DATA_PATH)
+    return get_dataframe()
 
 @router.get("/occurrences")
 def read_occurrences(
