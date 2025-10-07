@@ -1,14 +1,52 @@
 import pandas as pd
-from sklearn.cluster import KMeans
+import numpy as np
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import StandardScaler
+from typing import Optional
 
-def cluster_hotspots(df: pd.DataFrame, bairro: str, hora: int, n_clusters: int = 3):
-    df_filtrado = df[(df['bairro'] == bairro) & (df['hora'] == hora)].dropna(subset=['latitude', 'longitude'])
-    if len(df_filtrado) < n_clusters:
-        return {"message": "Dados insuficientes para prever hotspots.", "hotspots": []}
+def cluster_hotspots(df: pd.DataFrame, bairro: str, hora: int, tipo_crime: Optional[str] = None):
+    """
+    Encontra hotspots de crimes usando DBSCAN, com filtro opcional por tipo de crime.
+    """
     
-    coordenadas = df_filtrado[['latitude', 'longitude']]
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init='auto')
-    kmeans.fit(coordenadas)
+    df_filtrado = df[(df['bairro'].str.contains(bairro, case=False, na=False)) & (df['hora'] == hora)]
+
+    if tipo_crime:
+        df_filtrado = df_filtrado[df_filtrado['tipo_crime'] == tipo_crime]
     
-    hotspots = [{"lat": lat, "lon": lon} for lat, lon in kmeans.cluster_centers_]
-    return {"message": f"{len(hotspots)} hotspots previstos encontrados.", "hotspots": hotspots}
+    coords = df_filtrado[['latitude', 'longitude']].dropna()
+
+    if len(coords) < 3: # Reduzido para 3 para ser mais flexível
+        return {"message": "Dados insuficientes para encontrar hotspots com os filtros aplicados.", "hotspots": []}
+
+    coords_scaled = StandardScaler().fit_transform(coords)
+
+    # >>>>> CORREÇÃO PRINCIPAL AQUI <<<<<
+    # Parâmetros ANTERIORES: eps=0.15, min_samples=4
+    # Parâmetros NOVOS (mais flexíveis): Aumentamos o raio de busca (eps) e
+    # diminuímos a quantidade mínima de pontos (min_samples).
+    db = DBSCAN(eps=0.3, min_samples=3).fit(coords_scaled)
+    
+    labels = db.labels_
+    unique_labels = set(labels)
+    
+    hotspots = []
+    for k in unique_labels:
+        if k == -1:
+            continue
+        
+        cluster_points = coords[labels == k]
+        
+        if not cluster_points.empty:
+            centroid = cluster_points.mean().to_dict()
+            hotspots.append({
+                "lat": centroid['latitude'],
+                "lon": centroid['longitude'],
+                "ocorrencias_no_hotspot": len(cluster_points)
+            })
+
+    return {
+        "message": f"{len(hotspots)} hotspots encontrados com DBSCAN.",
+        "hotspots": hotspots
+    }
+

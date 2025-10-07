@@ -2,27 +2,19 @@ import sys
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-# --- ADICIONE ESTE BLOCO NO TOPO DO ARQUIVO ---
-# Adiciona o diretório raiz do projeto ao path do Python
-# Isso garante que módulos como 'md_data_analysis' sejam encontrados
-FILE = Path(__file__).resolve()
-ROOT = FILE.parent.parent  # Sobe dois níveis: main.py -> md_api -> projeto_delegacia
-if str(ROOT) not in sys.path:
-    sys.path.append(str(ROOT))
-# --- FIM DO BLOCO ---
-
-# Agora os imports relativos à raiz do projeto funcionarão
 from md_api.routers import statistics, predictions, occurrences
 
-# Define o título e a descrição da sua API
+FILE = Path(__file__).resolve()
+ROOT = FILE.parent.parent  
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
+
 app = FastAPI(
     title="Delegacia 5.0 - API Preditiva de Crimes",
     description="API para análise e predição de ocorrências criminais.",
     version="1.0.0"
 )
 
-# Configura o CORS
 origins = ["http://localhost:5173", "http://localhost:3000"]
 app.add_middleware(
     CORSMiddleware,
@@ -32,13 +24,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Inclui os roteadores na aplicação principal
 app.include_router(statistics.router)
 app.include_router(predictions.router)
 app.include_router(occurrences.router)
 
 @app.get("/")
 def read_root():
-    """Endpoint raiz para verificar se a API está online."""
     return {"message": "Bem-vindo à API Delegacia 5.0. Acesse /docs para a documentação interativa."}
 

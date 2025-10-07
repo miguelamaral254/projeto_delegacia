@@ -10,4 +10,5 @@ matplotlib
 seaborn
 nltk
 pandas
-libomp
+
+uvicorn

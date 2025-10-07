@@ -195,3 +195,86 @@ Para a **Entrega 2**, a estratégia será a seguinte:
 
 1.  **Análise Não Supervisionada**: Utilizar técnicas de **clusterização (`KMeans`)** para encontrar padrões no *modus operandi* e na geolocalização, ignorando os rótulos de tipo de crime.
 2.  **Aprimoramento Supervisionado**: Simplificar o problema, agrupando os 10 crimes em 3 ou 4 categorias mais amplas (ex: "Crimes Contra o Patrimônio"). Isso tem um potencial muito maior de gerar um modelo preditivo com utilidade prática.
+3.  
+
+Com certeza\! Baseado na nossa conversa e nas implementações do `Isolation Forest` e `DBSCAN`, preparei a seção de evolução do projeto em formato Markdown.
+
+Você pode adicionar este bloco ao final do seu documento para detalhar as novidades da Entrega 2 e apresentar uma conclusão e próximos passos atualizados.
+
+-----
+
+## 5\. Evolução do Projeto (Entrega 2): Análise Não Supervisionada Avançada
+
+A principal descoberta da Entrega 1 foi que os dados disponíveis possuem um sinal fraco para a *classificação supervisionada* de 10 tipos de crimes. Em vez de abandonar a análise, a Entrega 2 aprofunda a investigação utilizando **modelos não supervisionados**, que não dependem de rótulos e são excelentes para descobrir padrões e estruturas ocultas nos dados.
+
+A API foi expandida com dois novos endpoints de análise avançada.
+
+### Novos Endpoints da API
+
+#### `GET /predict/anomalies`
+
+  * **Descrição**: Identifica as ocorrências criminais mais **anômalas** (atípicas) do conjunto de dados.
+  * **Funcionalidade**: Utiliza o algoritmo **`Isolation Forest`** para atribuir um *score de anomalia* a cada ocorrência. Scores mais baixos indicam eventos mais raros e estatisticamente improváveis. Essa abordagem é poderosa para encontrar crimes graves (como Latrocínio) ou ocorrências com características únicas (*modus operandi* incomum, grande número de vítimas, etc.) que merecem atenção investigativa imediata.
+  * **Parâmetros de Query**:
+      * `n_results` (opcional): Número de anomalias a serem retornadas (padrão: 20).
+  * **Saída (JSON)**: Retorna uma lista das ocorrências mais anômalas, ordenadas por seu score.
+    ```json
+    {
+      "message": "20 anomalias principais encontradas.",
+      "anomalies": [
+        {
+          "id_ocorrencia": 12345,
+          "tipo_crime": "Latrocínio",
+          "bairro": "BOA VISTA",
+          "data_ocorrencia": "2025-09-15T22:00:00",
+          "arma_utilizada": "ARMA DE FOGO",
+          "quantidade_vitimas": 3,
+          "anomaly_score": -0.2154
+        },
+        ...
+      ]
+    }
+    ```
+
+#### `GET /predict/hotspots/dbscan`
+
+  * **Descrição**: Realiza uma clusterização avançada para encontrar **hotspots** de crimes com base na densidade geográfica.
+  * **Funcionalidade**: É uma evolução do endpoint de hotspots original. Em vez de `KMeans`, ele utiliza o **`DBSCAN`**, um algoritmo que agrupa ocorrências que estão geograficamente próximas, formando clusters (hotspots) de formatos irregulares e mais realistas. Uma vantagem chave é a capacidade de identificar e separar ocorrências isoladas como **ruído**, limpando a análise e focando apenas nas áreas de alta concentração.
+  * **Parâmetros de Query**:
+      * `bairro` (opcional): Filtra as ocorrências por um bairro específico.
+      * `tipo_crime` (opcional): Filtra as ocorrências por um tipo de crime.
+  * **Saída (JSON)**: Retorna os centroides dos hotspots encontrados e o número de ocorrências em cada um.
+    ```json
+    {
+      "message": "4 hotspots encontrados com DBSCAN.",
+      "hotspots": [
+        {
+          "latitude": -8.051,
+          "longitude": -34.885,
+          "ocorrencias_no_hotspot": 15
+        },
+        {
+          "latitude": -8.062,
+          "longitude": -34.891,
+          "ocorrencias_no_hotspot": 9
+        }
+      ],
+      "noise_points": 23
+    }
+    ```
+
+-----
+
+## 6\. Conclusão Final e Storytelling do Projeto
+
+A jornada do projeto "Delegacia 5.0" demonstrou uma evolução clara, partindo de uma pergunta inicial sobre predição para uma solução mais sofisticada de **inteligência e descoberta de padrões**.
+
+A **Entrega 1** foi fundamental para estabelecer um pipeline robusto e provar que uma abordagem de classificação supervisionada tradicional era limitada pela natureza dos dados. Essa "falha" em obter alta acurácia foi, na verdade, o insight que guiou o sucesso da **Entrega 2**.
+
+Na segunda fase, pivotamos para o **aprendizado não supervisionado** com um duplo objetivo, criando uma ferramenta de apoio à decisão para a polícia com duas visões complementares:
+
+1.  **A Visão Estratégica (Hotspots com `DBSCAN`)**: Responde à pergunta: **"Onde devemos alocar nossos recursos de patrulhamento?"**. Ao analisar a densidade real dos crimes, a polícia pode otimizar a distribuição de efetivo para as áreas que, de fato, concentram o maior volume de ocorrências, independentemente de fronteiras de bairros.
+
+2.  **A Visão Investigativa (Anomalias com `Isolation Forest`)**: Responde à pergunta: **"Qual ocorrência registrada hoje exige atenção imediata?"**. Ao filtrar os eventos estatisticamente mais improváveis, a ferramenta age como um sistema de alerta, destacando para os investigadores os casos mais atípicos que podem representar novas modalidades de crime, criminosos mais perigosos ou situações de maior gravidade.
+
+O resultado final não é apenas um modelo que "prevê crimes", mas uma plataforma de *data science* que capacita a Polícia Civil a explorar seus próprios dados, transformando informação bruta em conhecimento acionável para tornar as operações mais eficientes e inteligentes.
