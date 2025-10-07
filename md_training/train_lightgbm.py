@@ -15,14 +15,8 @@ from imblearn.pipeline import Pipeline as ImbPipeline
 from lightgbm import LGBMClassifier
 import nltk
 import matplotlib.pyplot as plt
-
 import json
-
 from pathlib import Path
-
-
-
-# --- FUNÇÃO FINAL CORRIGIDA: update_models_summary ---
 def update_models_summary(model_id, report_data, reports_dir):
     SUMMARY_FILE = reports_dir / "models_summary.json"
     
@@ -33,17 +27,12 @@ def update_models_summary(model_id, report_data, reports_dir):
         models_summary = []
 
     accuracy = report_data['metrics']['accuracy']
-    
-    # CORREÇÃO CRUCIAL AQUI: Usamos o nome de arquivo EXATO que foi salvo
-    # E garantimos que o nome de arquivo de relatório JSON está correto.
     report_filename_json = f"{model_id}_report.json"
     
     new_entry = {
         "model_id": model_id,
         "name": report_data['model_name'],
         "accuracy": accuracy,
-        # A URL na API é '/reports/model/{report_name}'.
-        # O nome do arquivo a ser passado é: 'baseline_report.json'
         "report_file": report_filename_json, 
         "training_date": report_data['training_date']
     }
