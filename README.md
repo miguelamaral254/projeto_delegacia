@@ -277,4 +277,148 @@ Na segunda fase, pivotamos para o **aprendizado não supervisionado** com um dup
 
 2.  **A Visão Investigativa (Anomalias com `Isolation Forest`)**: Responde à pergunta: **"Qual ocorrência registrada hoje exige atenção imediata?"**. Ao filtrar os eventos estatisticamente mais improváveis, a ferramenta age como um sistema de alerta, destacando para os investigadores os casos mais atípicos que podem representar novas modalidades de crime, criminosos mais perigosos ou situações de maior gravidade.
 
-O resultado final não é apenas um modelo que "prevê crimes", mas uma plataforma de *data science* que capacita a Polícia Civil a explorar seus próprios dados, transformando informação bruta em conhecimento acionável para tornar as operações mais eficientes e inteligentes.
+O resultado final não é apenas um modelo que "prevê crimes", mas uma plataforma de *data science* que capacita a Polícia Civil a explorar seus próprios dados, transformando informação bruta em conhecimento acionável para tornar as operações mais eficientes e inteligentes.Perfeito 🔥 então bora fechar bonito.
+
+A segunda etapa aprofunda a inteligência analítica do projeto, transformando o sistema em uma **plataforma de apoio à decisão** baseada em dados reais.
+Foram implementadas **seis funcionalidades principais**, cada uma voltada para uma dimensão específica da segurança pública.
+
+---
+
+### 6.1 Análise de Similaridade
+
+**Objetivo:** descobrir crimes com descrições semelhantes para identificar possíveis padrões de *modus operandi*.
+
+* Implementado com **TF-IDF** e **Cosine Similarity**.
+* Permite comparar descrições de ocorrências, exibindo as mais semelhantes.
+* Exemplo de uso:
+
+  ```bash
+  GET /predict/similarity?descricao="Roubo de celular com uso de arma branca"
+  ```
+* Saída esperada:
+
+  ```json
+  {
+    "ocorrencia_referencia": "Roubo de celular com uso de arma branca",
+    "ocorrencias_similares": [
+      {"id": 2341, "similaridade": 0.87, "descricao": "Assalto com faca em via pública"},
+      {"id": 1875, "similaridade": 0.82, "descricao": "Roubo de bolsa sob ameaça com arma branca"}
+    ]
+  }
+  ```
+
+---
+
+### 6.2 Clusterização Geográfica (KMeans & DBSCAN)
+
+**Objetivo:** encontrar padrões espaciais de criminalidade.
+
+* O **KMeans** foi usado inicialmente para agrupamentos rápidos e fixos.
+* O **DBSCAN** aprimorou a análise, permitindo detectar *hotspots* de formatos irregulares e pontos de ruído.
+* Endpoint principal:
+
+  ```bash
+  GET /predict/hotspots/dbscan?tipo_crime=Furto
+  ```
+* Saída:
+
+  ```json
+  {
+    "message": "5 hotspots encontrados com DBSCAN.",
+    "hotspots": [
+      {"latitude": -8.045, "longitude": -34.870, "ocorrencias_no_hotspot": 11},
+      {"latitude": -8.054, "longitude": -34.882, "ocorrencias_no_hotspot": 9}
+    ],
+    "noise_points": 14
+  }
+  ```
+
+---
+
+### 6.3 Mapeamento de Hotspots (Visual Analytics)
+
+**Objetivo:** fornecer visualizações interativas para tomada de decisão.
+
+* O frontend consome os clusters e renderiza **mapas de calor** em tempo real.
+* Integração direta com **Leaflet.js** e **React**, permitindo filtros por tipo de crime, bairro e período.
+* Resultado: uma visão operacional clara das zonas críticas.
+
+---
+
+### 6.4 Detecção de Anomalias (Isolation Forest)
+
+**Objetivo:** identificar crimes com comportamento fora do padrão.
+
+* Usa o **Isolation Forest** para pontuar a “estranheza” de cada ocorrência.
+* Ideal para localizar crimes graves, incomuns ou reincidentes.
+* Endpoint:
+
+  ```bash
+  GET /predict/anomalies?n_results=20
+  ```
+* Saída:
+
+  ```json
+  {
+    "message": "20 anomalias principais encontradas.",
+    "anomalies": [
+      {
+        "id_ocorrencia": 918,
+        "tipo_crime": "Latrocínio",
+        "bairro": "Boa Vista",
+        "anomaly_score": -0.214
+      }
+    ]
+  }
+  ```
+
+---
+
+### 6.5 Correlação Semântica e Padrões Contextuais
+
+**Objetivo:** combinar a análise textual com variáveis categóricas.
+
+* Ao correlacionar “descrição + bairro + horário + arma utilizada”, foram descobertos padrões de crime por região e perfil de vítima.
+* Exemplo: furtos com arma branca e crimes noturnos concentram-se nos bairros X e Y.
+
+---
+
+### 6.6 Endpoint de Relatório Inteligente
+
+**Objetivo:** gerar relatórios consolidados diretamente da API.
+
+* Endpoint:
+
+  ```bash
+  GET /predict/report?bairro=Boa Vista
+  ```
+* Saída:
+
+  ```json
+  {
+    "bairro": "Boa Vista",
+    "total_ocorrencias": 57,
+    "tipos_mais_frequentes": ["Furto", "Roubo"],
+    "hotspots_detectados": 3,
+    "anomalias": 2,
+    "indicador_risco": "ALTO"
+  }
+  ```
+* Esse endpoint combina insights de todas as análises, fornecendo uma visão executiva para planejamento policial.
+
+---
+
+## 7. Conclusão Integrada
+
+A **Delegacia 5.0** evoluiu de um modelo experimental para um sistema completo de **inteligência criminal exploratória**.
+A **Entrega 1** construiu a base: tratamento de dados, predição e API.
+A **Entrega 2** adicionou a camada analítica: similaridade, clusterização, anomalias e relatórios.
+
+Juntas, essas entregas transformam dados brutos em **conhecimento acionável**, respondendo a duas perguntas-chave:
+
+1. **Onde concentrar os recursos?** → *Hotspots e Clusters*
+2. **Quais ocorrências exigem atenção imediata?** → *Anomalias e Similaridade*
+
+O resultado é uma ferramenta prática, interpretável e alinhada à missão da Polícia Civil: **atuar de forma mais eficiente, preventiva e inteligente**.
+
+---
