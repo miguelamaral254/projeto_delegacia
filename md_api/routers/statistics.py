@@ -15,6 +15,7 @@ from md_data_analysis.analysis_functions.get_seasonality_data import analyze_sea
 from md_data_analysis.analysis_functions.get_unique_crime_types import analyze_unique_crime_types
 from md_data_analysis.analysis_functions.get_unique_bairros import analyze_unique_bairros
 from md_data_analysis.analysis_functions.get_unique_years import analyze_unique_years
+from md_data_analysis.analysis_functions.analyze_text_topics import analyze_text_topics 
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 DATA_PATH = BASE_DIR / "data" / "dataset_ocorrencias_delegacia_5.csv"
@@ -51,3 +52,11 @@ def read_unique_bairros(df: pd.DataFrame = Depends(get_df)):
 @router.get("/unique-years")
 def read_unique_years(df: pd.DataFrame = Depends(get_df)):
     return analyze_unique_years(df)
+
+@router.get("/modus-operandi-topics")
+def read_modus_operandi_topics(
+    bairro: str = Query(None),
+    n_topics: int = Query(5, gt=1, le=15),
+    df: pd.DataFrame = Depends(get_df)
+):
+    return analyze_text_topics(df, bairro=bairro, n_topics=n_topics)
