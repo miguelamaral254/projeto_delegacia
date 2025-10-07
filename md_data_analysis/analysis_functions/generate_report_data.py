@@ -1,13 +1,9 @@
 import pandas as pd
 
 def generate_report_data(df: pd.DataFrame):
-    """
-    Agrega os principais achados, métricas e limitações para o relatório.
-    """
     if df.empty:
         return {"error": "Dataset vazio, não é possível gerar o relatório."}
 
-    # 1. Achados Principais
     top_5_bairros = df['bairro'].value_counts().head(5).reset_index()
     top_5_bairros.columns = ['name', 'value']
 
@@ -17,8 +13,6 @@ def generate_report_data(df: pd.DataFrame):
     seasonality = df.groupby(df['data_ocorrencia'].dt.month)['id_ocorrencia'].count().reset_index()
     seasonality.columns = ['mes', 'ocorrencias']
     seasonality['mes'] = seasonality['mes'].apply(lambda x: pd.to_datetime(str(x), format='%m').strftime('%b'))
-
-    # 2. Métricas dos Modelos (Resumo)
     metrics = {
         "supervised_model": {
             "name": "Previsão de Violência (LightGBM)",
@@ -32,7 +26,6 @@ def generate_report_data(df: pd.DataFrame):
         }
     }
 
-    # 3. Limitações
     limitations = [
         "A qualidade dos dados de entrada (ex: descrições de M.O.) impacta diretamente a performance.",
         "O modelo não prevê o futuro, mas identifica padrões com base em dados passados.",

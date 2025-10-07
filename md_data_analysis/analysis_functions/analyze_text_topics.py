@@ -5,7 +5,6 @@ from nltk.corpus import stopwords
 import nltk
 from typing import Optional
 
-# Garante que as stopwords do NLTK estão baixadas
 try:
     STOPWORDS_PT = stopwords.words('portuguese')
 except LookupError:
@@ -13,10 +12,6 @@ except LookupError:
     STOPWORDS_PT = stopwords.words('portuguese')
 
 def analyze_text_topics(df: pd.DataFrame, bairro: Optional[str] = None, n_topics: int = 5, n_keywords: int = 7):
-    """
-    Usa LDA (Latent Dirichlet Allocation) para extrair os principais tópicos
-    da coluna 'descricao_modus_operandi'.
-    """
     df_filtrado = df.copy()
     if bairro:
         df_filtrado = df_filtrado[df_filtrado['bairro'].str.contains(bairro, case=False, na=False)]
@@ -25,8 +20,6 @@ def analyze_text_topics(df: pd.DataFrame, bairro: Optional[str] = None, n_topics
 
     if len(text_data) < 10:
         return {"message": "Texto insuficiente para modelagem de tópicos com os filtros aplicados.", "topics": []}
-
-    # Prepara o texto para o modelo LDA
     vectorizer = CountVectorizer(
         max_df=0.9, 
         min_df=2, 
@@ -35,11 +28,9 @@ def analyze_text_topics(df: pd.DataFrame, bairro: Optional[str] = None, n_topics
     )
     X = vectorizer.fit_transform(text_data)
     
-    # Cria e treina o modelo LDA
     lda = LatentDirichletAllocation(n_components=n_topics, random_state=42)
     lda.fit(X)
 
-    # Formata o resultado para ser legível
     topics = []
     feature_names = vectorizer.get_feature_names_out()
     for topic_idx, topic in enumerate(lda.components_):
