@@ -1,48 +1,57 @@
-# main.py (Corrigido)
 import os
 import subprocess
 import sys
-from pathlib import Path # NOVO: Importa a classe Path
+import json
+from datetime import datetime
+from pathlib import Path
+
+REPORTS_DIR = Path(__file__).resolve().parent.parent / "reports"
+STATUS_FILE = REPORTS_DIR / "training_status.json"
+
+def write_status(status, message=None):
+    os.makedirs(REPORTS_DIR, exist_ok=True)
+    data = {"status": status, "timestamp": datetime.now().isoformat()}
+    if message:
+        data["message"] = message
+    with open(STATUS_FILE, 'w') as f:
+        json.dump(data, f)
 
 def run_script(script_path):
-    """Executa um script Python usando seu caminho completo e verifica se houve erros."""
     script_name = script_path.name
     print(f"--- Iniciando a execução de {script_name} ---")
-    try:
-        process = subprocess.run(
-            [sys.executable, str(script_path)], # Garante que o caminho é uma string
-            check=True,
-            capture_output=True,
-            text=True,
-            encoding='utf-8' # Adicionado para melhor compatibilidade
-        )
-        print(process.stdout)
-        print(f"--- {script_name} concluído com sucesso! ---\n")
-    except subprocess.CalledProcessError as e:
-        print(f"!!! ERRO ao executar {script_name}:")
-        print(e.stderr)
-        print("!!! A execução será interrompida. Corrija o erro acima e tente novamente.")
-        sys.exit(1) # Interrompe a execução em caso de erro
+    
+    # O check=True fará o processo falhar se o script interno falhar (status 1)
+    process = subprocess.run(
+        [sys.executable, str(script_path)],
+        check=True, 
+        capture_output=True,
+        text=True,
+        encoding='utf-8'
+    )
+    # NÃO IMPRIMIR process.stdout AQUI. O script de treino já deve imprimir seus próprios resultados.
+    
+    print(f"--- {script_name} concluído com sucesso! ---\n")
 
 if __name__ == "__main__":
-    print(">>> Iniciando o pipeline de treinamento de modelos...")
+    try:
+        write_status("running", "Pipeline de treinamento iniciado.")
+        print(">>> Iniciando o pipeline de treinamento de modelos...")
 
-    # NOVO: Obtém o diretório do script atual (main.py)
-    # Isso garante que ele sempre encontrará os outros scripts na mesma pasta.
-    current_dir = Path(__file__).resolve().parent
+        current_dir = Path(__file__).resolve().parent
+        # A ordem é importante, pois o LightGBM é o modelo principal de predição de violência
+        training_scripts = ["train_baseline.py", "train_randomforest.py", "train_lightgbm.py"]
 
-    training_scripts = [
-        "train_baseline.py",
-        "train_randomforest.py",
-        "train_lightgbm.py"
-    ]
+        for script_filename in training_scripts:
+            full_script_path = current_dir / script_filename
+            if not full_script_path.exists():
+                raise FileNotFoundError(f"O script {script_filename} não foi encontrado.")
+            run_script(full_script_path)
+        
+        write_status("complete", "Pipeline de treinamento concluído com sucesso.")
+        print(">>> Pipeline de treinamento de modelos finalizado.")
 
-    for script_filename in training_scripts:
-        # NOVO: Monta o caminho completo para o script
-        full_script_path = current_dir / script_filename
-        if not full_script_path.exists():
-            print(f"!!! ERRO: O script {script_filename} não foi encontrado no diretório {current_dir}")
-            continue
-        run_script(full_script_path)
-
-    print(">>> Pipeline de treinamento de modelos finalizado.")
+    except Exception as e:
+        error_message = f"ERRO: {e}"
+        print(error_message)
+        write_status("failed", error_message)
+        sys.exit(1)

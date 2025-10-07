@@ -3,11 +3,12 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from fastapi.staticfiles import StaticFiles 
 
-from md_api.routers import statistics, predictions, occurrences, analysis, dataset
+from md_api.routers import statistics, predictions, occurrences, analysis, dataset, reports 
 from md_data_analysis.data_loader import load_initial_dataframe
 
-DATA_PATH = Path(__file__).resolve().parent / "data" / "dataset_ocorrencias_delegacia_5.csv"
+DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "dataset_ocorrencias_delegacia_5.csv"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -35,6 +36,8 @@ app.include_router(predictions.router)
 app.include_router(occurrences.router)
 app.include_router(analysis.router)
 app.include_router(dataset.router)
+app.include_router(reports.router) 
+app.mount("/reports", StaticFiles(directory="reports"), name="reports")
 
 @app.get("/")
 def read_root():
