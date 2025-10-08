@@ -5,10 +5,6 @@ from sklearn.preprocessing import StandardScaler
 from typing import Optional
 
 def cluster_hotspots(df: pd.DataFrame, bairro: str, hora: int, tipo_crime: Optional[str] = None):
-    """
-    Encontra hotspots de crimes usando DBSCAN, com filtro opcional por tipo de crime.
-    """
-    
     df_filtrado = df[(df['bairro'].str.contains(bairro, case=False, na=False)) & (df['hora'] == hora)]
 
     if tipo_crime:
@@ -16,15 +12,10 @@ def cluster_hotspots(df: pd.DataFrame, bairro: str, hora: int, tipo_crime: Optio
     
     coords = df_filtrado[['latitude', 'longitude']].dropna()
 
-    if len(coords) < 3: # Reduzido para 3 para ser mais flexível
+    if len(coords) < 3:
         return {"message": "Dados insuficientes para encontrar hotspots com os filtros aplicados.", "hotspots": []}
 
     coords_scaled = StandardScaler().fit_transform(coords)
-
-    # >>>>> CORREÇÃO PRINCIPAL AQUI <<<<<
-    # Parâmetros ANTERIORES: eps=0.15, min_samples=4
-    # Parâmetros NOVOS (mais flexíveis): Aumentamos o raio de busca (eps) e
-    # diminuímos a quantidade mínima de pontos (min_samples).
     db = DBSCAN(eps=0.3, min_samples=3).fit(coords_scaled)
     
     labels = db.labels_

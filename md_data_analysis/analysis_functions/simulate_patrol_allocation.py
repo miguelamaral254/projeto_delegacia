@@ -28,7 +28,6 @@ def simulate_patrol_allocation(df: pd.DataFrame, bairro: str, num_patrols: int, 
             cell_lat_max = lat_min + (i + 1) * lat_step
             cell_lon_min = lon_min + j * lon_step
             cell_lon_max = lon_min + (j + 1) * lon_step
-
             cell_crimes = df_bairro[
                 (df_bairro['latitude'] >= cell_lat_min) & (df_bairro['latitude'] < cell_lat_max) &
                 (df_bairro['longitude'] >= cell_lon_min) & (df_bairro['longitude'] < cell_lon_max)
@@ -36,7 +35,6 @@ def simulate_patrol_allocation(df: pd.DataFrame, bairro: str, num_patrols: int, 
             
             cell_index = i * grid_size + j
             risk_scores[cell_index] = len(cell_crimes)
-            
             grid.append({
                 "id": cell_index, "bounds": [[cell_lat_min, cell_lon_min], [cell_lat_max, cell_lon_max]],
                 "center": [cell_lat_min + lat_step/2, cell_lon_min + lon_step/2], "risk": len(cell_crimes)
